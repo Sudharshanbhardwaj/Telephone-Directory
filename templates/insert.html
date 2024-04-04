@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Insert Data</title>
+    <style>
+        body {
+            background-image: url("https://wallpaperaccess.com/full/1567666.png");
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .insert-container {
+            color: black;
+            width: 400px;
+            padding: 40px;
+            background-color: transparent;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        .message {
+            color: white;
+        }
+        select,
+        input[type="submit"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: transparent;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: rgb(165, 212, 227);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="insert-container">
+        <form method="POST">
+            <div style="text-align: center;">
+                <h1 style="color: white;">INSERTION</h1>
+            </div>
+            <select name="table_name" id="table_name" onchange="showAttributes(this.value)">
+                <option value="">Select a table</option>
+                {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+                {% endfor %}
+            </select>
+            <div id="attributes"></div>
+            <input type="submit" value="Insert">
+        </form>
+        <div class= "message">
+            {% if message %}
+            <p>{{ message }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        function showAttributes(table_name) {
+            var attributesDiv = document.getElementById('attributes');
+            attributesDiv.innerHTML = '';
+            // Fetch attribute names for the selected table using an AJAX request
+            fetch('/get_attributes?table_name=' + table_name)
+                .then(response => response.json())
+                .then(data => {
+                    var attributes = data.attributes;
+                    for (var i = 0; i < attributes.length; i++) {
+                        var input = document.createElement('input');
+                        input.type = 'text';
+                        input.name = 'attribute_values[]';
+                        input.placeholder = 'Enter ' + attributes[i];
+                        attributesDiv.appendChild(input);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

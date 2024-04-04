@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Update Data</title>
+    <style>
+        body {
+            background-image: url("https://wallpaperaccess.com/full/1567666.png");
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .update-container {
+            color: rgb(79, 249, 81);
+            width: 400px;
+            padding: 40px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(255, 255, 255, 0.2);
+        }
+        select,
+        input[type="submit"],
+        input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: none;
+            
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: transparent;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: rgb(165, 212, 227);
+            color: black;
+        }
+        label {
+            margin-top: 10px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="update-container">
+
+        <form method="POST">
+            <div style="text-align: center;">
+                <h1 style="color: white;">UPDATE</h1>
+            </div>
+            <select name="table_name" id="table_name" onchange="showAttributes(this.value)">
+                <option value="">Select a table</option>
+                {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+                {% endfor %}
+            </select>
+            <div id="attributes"></div>
+            <label for="update_attribute">Enter attribute to update:</label>
+            <input type="text" name="update_attribute" id="update_attribute" placeholder="Attribute name">
+            <label for="update_value">Enter new value:</label>
+            <input type="text" name="update_value" id="update_value" placeholder="New value">
+            <input type="submit" value="Update">
+        </form>
+        {% if message %}
+        <p>{{ message }}</p>
+        {% endif %}
+    </div>
+    <script>
+        function showAttributes(table_name) {
+            var attributesDiv = document.getElementById('attributes');
+            attributesDiv.innerHTML = '';
+            // Fetch attribute names for the selected table using an AJAX request
+            fetch('/get_attributes?table_name=' + table_name)
+                .then(response => response.json())
+                .then(data => {
+                    var attributes = data.attributes;
+                    for (var i = 0; i < attributes.length; i++) {
+                        var label = document.createElement('label');
+                        label.textContent = 'Enter value for ' + attributes[i];
+                        var inputName = document.createElement('input');
+                        inputName.type = 'hidden';
+                        inputName.name = 'attribute_names[]';
+                        inputName.value = attributes[i];  // Set the value of the input field to the attribute name
+                        var inputValue = document.createElement('input');
+                        inputValue.type = 'text';
+                        inputValue.name = 'attribute_values[]';
+                        inputValue.placeholder = 'Enter value for ' + attributes[i];
+                        attributesDiv.appendChild(label);
+                        attributesDiv.appendChild(inputName);
+                        attributesDiv.appendChild(inputValue);
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

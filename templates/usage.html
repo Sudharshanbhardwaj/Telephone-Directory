@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Database Explorer</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: space-between;
+        }
+        #table-data {
+            overflow-y: auto;
+            height: 100vh;
+            width: 70%;
+        }
+        #search-options {
+            height: 100vh;
+            width: 30%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .search-container {
+            padding: 20px;
+            border-radius: 5px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.1);
+            width: 80%;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        table, th, td {
+            border: 1px solid black;
+        }
+        th, td {
+            padding: 15px;
+            text-align: left;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        tr:nth-child(even) {background-color: #f2f2f2;}
+        input[type="text"], button {
+            border-radius: 25px;
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #45a049;
+        }
+    </style>
+</head>
+<body>
+    <div id="table-data">
+        <table>
+            <thead>
+                <tr>
+                    {% for attribute in attributes %}
+                        <th>{{ attribute }}</th>
+                    {% endfor %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in records %}
+                    <tr>
+                        {% for value in record %}
+                            <td>{{ value }}</td>
+                        {% endfor %}
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <div id="search-options">
+        <div class="search-container">
+            <h2>Search</h2>
+            <form method="post">
+                {% for attribute in attributes %}
+                    <label for="{{ attribute }}">{{ attribute }}</label>
+                    <input type="text" id="{{ attribute }}" name="{{ attribute }}">
+                {% endfor %}
+                <button type="submit">Search</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>

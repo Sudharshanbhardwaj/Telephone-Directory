@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Delete Data</title>
+    <style>
+        body {
+            background-image: url("https://wallpaperaccess.com/full/1567666.png");
+            background-size: cover;
+            background-position: center;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            margin: 0;
+        }
+        .delete-container {
+            color: white ;
+            width: 450px;
+            font-family: Arial;
+            background-color: transparent; 
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+        input[type="text"],
+        input[type="email"],
+        select {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            background-color: rgb(245, 245, 245);
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            background-color: transparent;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: rgb(165, 212, 227);
+            color: black;
+        }
+    </style>
+</head>
+<body>
+    <div class="delete-container">
+        <form method="POST">
+            <div class="form-group">
+                <div style="text-align: center;">
+                    <h1 style="text-shadow: white;">
+                        DELETION
+                    </h1>
+                </div>
+                <select name="table_name" id="table_name" onchange="showAttributes(this.value)">
+                    <option value="">Select a table</option>
+                    {% for table in tables %}
+                    <option value="{{ table }}">{{ table }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div id="attributes"></div>
+            <input type="submit" value="Delete">
+        </form>
+        <div>
+            {% if message %}
+                <p>{{ message }}</p>
+            {% endif %}
+        </div>
+    </div>
+    <script>
+        function showAttributes(table_name) {
+            var attributesDiv = document.getElementById('attributes');
+            attributesDiv.innerHTML = '';
+            // Fetch attribute names for the selected table using an AJAX request
+            fetch('/get_attributes?table_name=' + table_name)
+                .then(response => response.json())
+                .then(data => {
+                    var attributes = data.attributes;
+                    for (var i = 0; i < attributes.length; i++) {
+                        var label = document.createElement('label');
+                        label.textContent = 'Enter value for ' + attributes[i];
+                        var inputName = document.createElement('input');
+                        inputName.type = 'hidden';
+                        inputName.name = 'attribute_names[]';
+                        inputName.value = attributes[i];  // Set the value of the input field to the attribute name
+                        var inputValue = document.createElement('input');
+                        inputValue.type = 'text';
+                        inputValue.name = 'attribute_values[]';
+                        inputValue.placeholder = 'Enter value for ' + attributes[i];
+                        attributesDiv.appendChild(label);
+                        attributesDiv.appendChild(inputName);
+                        attributesDiv.appendChild(inputValue);
+                    }
+                });
+        }
+       
+    </script>
+</body>
+</html>
