@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Rename Table</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-image: url("https://wallpaperaccess.com/full/1567666.png");
+            background-size: cover;
+            background-position: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        form {
+            color: white ;
+            width: 500px;
+            font-family: Arial;
+            background-color: rgba(0, 0, 0, 0.7); 
+            padding: 40px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+        }
+        input[type="text"], select, button {
+            border-radius: 5px;
+            padding: 10px 20px;
+            border: 1px solid #ccc;
+            width: 100%;
+            box-sizing: border-box;
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            width: 100%;
+            padding: 10px;
+            font-size: 16px;
+            border: none;
+            border-radius: 5px;
+            margin-top: 10px;
+            background-color: transparent;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            color: white;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: rgb(165, 212, 227);
+            color: black;
+        }
+        p {
+            color: white;
+        }
+        .navbar {
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: hidden;
+            width: 100%;
+            border-radius: 8px;
+            margin: 0;
+            box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            margin-bottom: 20px;
+        }
+
+        .navbar a {
+            float: left;
+            display: block;
+            color: white;
+            text-align: center;
+            padding: 14px 20px;
+            text-decoration: none;
+        }
+
+        .navbar a:hover {
+            background-color: rgb(165, 212, 227);
+            color: black;
+        }
+    </style>
+</head>
+<header>
+    <div class="navbar">
+        <a href="/use">Use</a>
+        <a href="/user">User</a>
+        <a href="/insert">Insert</a>
+        <a href="/update">Update</a>
+        <a href="/delete">Delete</a>
+        <a href="/rename">Rename</a>
+        <a href="/logout">Logout</a>
+    </div>
+</header>
+<body>
+
+    <form method="POST">
+        <div style="text-align: center;">
+            <h1 style="color: white;">RENAME</h1>
+        </div>
+        <select name="old_table_name" id="old_table_name">
+            <option value="">Select a table to rename</option>
+            {% for table in tables %}
+                <option value="{{ table }}">{{ table }}</option>
+            {% endfor %}
+        </select>
+        <label for="new_table_name" >Enter new table name:</label>
+        <input type="text" name="new_table_name" id="new_table_name" placeholder="New table name" style="margin-top: 10px;">
+        <input type="submit" value="Rename">
+    </form>
+    {% if message %}
+    <p>{{ message }}</p>
+    {% endif %}
+</body>
+</html>
