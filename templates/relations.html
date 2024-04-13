@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Entity Relationships</title>
+    <style>
+        body {
+            background-image: url("https://wallpaperaccess.com/full/1567666.png");
+            background-size: cover;
+            background-position: center;
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+        table {
+            width: 60%;
+            margin: 50px auto;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        th {
+            background-color: #4CAF50;
+            color: white;
+        }
+        td {
+            color: #f5f5f5;
+        }
+    </style>
+</head>
+<body>
+    <table>
+        <tr>
+            <th>Entity 1</th>
+            <th>Relationship</th>
+            <th>Entity 2</th>
+        </tr>
+        <tr>
+            <td>Teaching_staff</td>
+            <td>Contact</td>
+            <td>Phone</td>
+        </tr>
+        <tr>
+            <td>NTeaching_staff</td>
+            <td>Contact_enquiry</td>
+            <td>Phone</td>
+        </tr>
+        <tr>
+            <td>Facilities</td>
+            <td>Contact_info</td>
+            <td>Phone</td>
+        </tr>
+        <tr>
+            <td>Students</td>
+            <td>Contact_number</td>
+            <td>Phone</td>
+        </tr>
+        <tr>
+            <td>Teaching_staff</td>
+            <td>Specialization</td>
+            <td>Job_desc</td>
+        </tr>
+        <tr>
+            <td>NTeaching_staff</td>
+            <td>Work_info</td>
+            <td>Job_desc</td>
+        </tr>
+        <tr>
+            <td>Block</td>
+            <td>To_Contact</td>
+            <td>Phone</td>
+        </tr>
+    </table>
+</body>
+</html>
