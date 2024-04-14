@@ -6,7 +6,7 @@ import hashlib
 
 app = Flask(__name__)
 app.secret_key = "HolaCopa"
-app.permanent_session_lifetime = timedelta(minutes= 5)
+app.permanent_session_lifetime = timedelta(minutes= 30)
 app.config['MYSQL_HOST'] = 'localhost'
 app.config['MYSQL_USER'] = 'root'
 app.config['MYSQL_PASSWORD'] = 'Jethru24'
@@ -63,7 +63,7 @@ def login():
             return redirect(url_for("login"))
 
         # Check if the user is an administrator
-        if email == "admin249@iitgn.ac.in":
+        if email in [ "admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
             session["user"] = name
             session["email"] = email
             flash("Login Successful, Admin!")
@@ -101,7 +101,7 @@ def insert():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -146,7 +146,7 @@ def delete():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -164,9 +164,13 @@ def delete():
         conditions = [f"{name} = '{value}'" for name, value in zip(attribute_names, attribute_values) if value]
         if conditions:
             condition_str = ' AND '.join(conditions)
+            cur.execute(f"LOCK TABLES {table_name} WRITE")
+
             query = f"DELETE FROM {table_name} WHERE {condition_str}"
             cur.execute(query)
             mysql.connection.commit()
+
+            cur.execute("UNLOCK TABLES")
             cur.close()
 
             return jsonify({"success": True})
@@ -185,7 +189,7 @@ def update():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -205,18 +209,22 @@ def update():
         conditions = [f"{name} = '{value}'" for name, value in zip(attribute_names, attribute_values) if value]
         if conditions:
             condition_str = ' AND '.join(conditions)
+
+            cur.execute(f"LOCK TABLES {table_name} WRITE")
             query = f"UPDATE {table_name} SET {update_attribute} = '{update_value}' WHERE {condition_str}"
             cur.execute(query)
             mysql.connection.commit()
-            cur.close()
+            cur.execute(f"UNLOCK TABLES")
 
+            cur.close()
             return jsonify({"success": True})
+        
         else:
+            cur.execute(f"UNLOCK TABLES")
             cur.close()
             return jsonify({"success": False, "message": "No attributes provided to update."})
     cur.close()
     return render_template('update.html', tables=tables)
-
 
 
 @app.route('/rename', methods=['GET', 'POST'])
@@ -227,7 +235,7 @@ def rename():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -238,34 +246,24 @@ def rename():
     if request.method == 'POST':
         old_table_name = request.form['old_table_name']
         new_table_name = request.form['new_table_name']
+        
         try:
+            cur.execute(f"LOCK TABLES {old_table_name} WRITE")
             query = f"RENAME TABLE {old_table_name} TO {new_table_name}"
             cur.execute(query)
             mysql.connection.commit()
+            cur.execute(f"UNLOCK TABLES")
             cur.close()
             return jsonify({"success": True})
+        
         except Exception as e:
+            cur.execute(f"UNLOCK TABLES")
             cur.close()
             return jsonify({"success": False, "message": str(e)})
 
     cur.close()
     return render_template('rename.html', tables=tables)
 
-
-
-@app.route('/get_attributes', methods=['GET'])
-def get_attributes():
-    table_name = request.args.get('table_name')
-
-    cur = mysql.connection.cursor()
-
-    # Fetch attribute names for the selected table
-    cur.execute(f"SHOW COLUMNS FROM {table_name}")
-    attributes = [column[0] for column in cur.fetchall()]
-
-    cur.close()
-
-    return jsonify({'attributes': attributes})
 
         
 @app.route('/user', methods=['GET', 'POST'])
@@ -305,7 +303,7 @@ def use():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -323,7 +321,7 @@ def usage(table_name):
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
@@ -355,11 +353,26 @@ def relations():
         return redirect(url_for("login"))
     
     # Check if the user is an administrator
-    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+    if session["user"] not in ["admin", "PseudoAdmin"] or session["email"] not in ["admin249@iitgn.ac.in", "pseudo@iitgn.ac.in"]:
         flash("You are not authorized to perform this action!")
         return redirect(url_for("user"))
     
     return render_template('relations.html')
+
+
+@app.route('/get_attributes', methods=['GET'])
+def get_attributes():
+    table_name = request.args.get('table_name')
+
+    cur = mysql.connection.cursor()
+
+    # Fetch attribute names for the selected table
+    cur.execute(f"SHOW COLUMNS FROM {table_name}")
+    attributes = [column[0] for column in cur.fetchall()]
+
+    cur.close()
+
+    return jsonify({'attributes': attributes})
 
 if __name__ == "__main__":
     app.run(debug = True)
