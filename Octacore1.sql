@@ -72,40 +72,40 @@ CREATE TABLE Contact(
  Work VARCHAR(10),
  Faculty_ID VARCHAR(10),
  PRIMARY KEY(Faculty_ID,Work),
- FOREIGN KEY(Faculty_ID) REFERENCES Teaching_staff(Faculty_ID),
- FOREIGN KEY(Work) REFERENCES Phone(Work)
+ FOREIGN KEY(Faculty_ID) REFERENCES Teaching_staff(Faculty_ID) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Work) REFERENCES Phone(Work) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Contact_enquiry(
  Work VARCHAR(10),
  Staff_ID VARCHAR(10),
  PRIMARY KEY(Staff_ID,Work),
- FOREIGN KEY(Staff_ID) REFERENCES NTeaching_staff(Staff_ID),
- FOREIGN KEY(Work) REFERENCES Phone(Work)
+ FOREIGN KEY(Staff_ID) REFERENCES NTeaching_staff(Staff_ID) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Work) REFERENCES Phone(Work) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Contact_info(
  Work VARCHAR(10),
  Facility_name VARCHAR(60),
  PRIMARY KEY(Facility_name,Work),
- FOREIGN KEY(Facility_name) REFERENCES Facility (Facility_name),
- FOREIGN KEY(Work) REFERENCES Phone(Work)
+ FOREIGN KEY(Facility_name) REFERENCES Facility (Facility_name) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Work) REFERENCES Phone(Work) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Contact_number(
  Work VARCHAR(10),
  Roll_number VARCHAR(15),
  PRIMARY KEY(Roll_number,Work),
- FOREIGN KEY(Work) REFERENCES Phone(Work),
- FOREIGN KEY(Roll_number) REFERENCES Students(Roll_number)
+ FOREIGN KEY(Work) REFERENCES Phone(Work) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Roll_number) REFERENCES Students(Roll_number) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE To_Contact(
  Block_name VARCHAR(20),
  Work VARCHAR(10),
  PRIMARY KEY(Block_name,Work),
- FOREIGN KEY(Work) REFERENCES Phone(Work),
- FOREIGN KEY(Block_name) REFERENCES Block(Block_name)
+ FOREIGN KEY(Work) REFERENCES Phone(Work) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Block_name) REFERENCES Block(Block_name) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 ALTER TABLE Job_desc
@@ -121,10 +121,10 @@ CREATE TABLE Work_info(
  Building VARCHAR(20),
  Discipline_name VARCHAR(60),
  PRIMARY KEY (Discipline_name,Designation,Room_number,Building,Staff_ID),
- FOREIGN KEY(Designation) REFERENCES Job_desc(Designation),
- FOREIGN KEY(Room_number) REFERENCES Job_desc(Room_number),
- FOREIGN KEY(Building) REFERENCES Job_desc(Building),
- FOREIGN KEY (Staff_ID) REFERENCES NTeaching_staff (Staff_ID)
+ FOREIGN KEY(Designation) REFERENCES Job_desc(Designation) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Room_number) REFERENCES Job_desc(Room_number) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Building) REFERENCES Job_desc(Building) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY (Staff_ID) REFERENCES NTeaching_staff (Staff_ID) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE Specialization(
@@ -134,11 +134,11 @@ CREATE TABLE Specialization(
  Room_number VARCHAR(5),
  Building VARCHAR(20),
  PRIMARY KEY (Discipline_name,Designation,Room_number,Building,Faculty_ID),
- FOREIGN KEY(Designation) REFERENCES Job_desc(Designation),
- FOREIGN KEY(Discipline_name) REFERENCES Job_desc(Discipline_name),
- FOREIGN KEY(Room_number) REFERENCES Job_desc(Room_number),
- FOREIGN KEY(Building) REFERENCES Job_desc(Building),
- FOREIGN KEY (Faculty_ID) REFERENCES Teaching_staff (Faculty_ID)
+ FOREIGN KEY(Designation) REFERENCES Job_desc(Designation) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Discipline_name) REFERENCES Job_desc(Discipline_name) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Room_number) REFERENCES Job_desc(Room_number) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY(Building) REFERENCES Job_desc(Building) ON DELETE CASCADE ON UPDATE CASCADE,
+ FOREIGN KEY (Faculty_ID) REFERENCES Teaching_staff (Faculty_ID) ON DELETE CASCADE ON UPDATE CASCADE
  );
 
 CREATE INDEX first_last_idx1 ON Teaching_staff(FirstName, LastName);
@@ -409,7 +409,7 @@ FROM Contact_info ci
 JOIN Facility f ON ci.Facility_name = f.Facility_name
 JOIN Phone p ON ci.Work = p.Work;
 
-SELECT b.Block_name AS Name,
+SELECT b.Block_name AS Name,	
        ' ' AS Designation,
 		' ' AS Email,
        ' ' AS Discipline_Section,
@@ -423,3 +423,18 @@ JOIN Phone p ON c.Work = p.Work;
 select * from Students;
 select * from Phone;
 select * from contact_number;
+ALTER TABLE Students RENAME COLUMN RNO TO Roll_number;
+ALTER TABLE STU RENAME TO Students;
+select * from STU;
+select * from Teaching_staff;
+select * from Block;
+DELETE FROM Students WHERE Roll_number = '20110002';
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100),
+    email VARCHAR(100) UNIQUE,
+    password_hash CHAR(64)
+);
+select * from users;
+delete from users WHERE name = 'Kay';
