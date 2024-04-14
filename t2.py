@@ -2,6 +2,7 @@ from flask import Flask, redirect, url_for, render_template, request, session, f
 from datetime import timedelta
 from flask_mysqldb import MySQL
 from flask import jsonify
+import hashlib 
 
 app = Flask(__name__)
 app.secret_key = "HolaCopa"
@@ -16,29 +17,68 @@ mysql = MySQL(app)
 def home():
     return render_template("index.html")
 
+@app.route("/register", methods=["GET", "POST"])
+def register():
+    if request.method == "POST":
+        name = request.form["name"]
+        email = request.form["email"]
+        password = request.form["password"]
+
+        # Hash the password using SHA-256
+        password_hash = hashlib.sha256(password.encode()).hexdigest()
+
+        cur = mysql.connection.cursor()
+        cur.execute("INSERT INTO users (name, email, password_hash) VALUES (%s, %s, %s)", (name, email, password_hash))
+        mysql.connection.commit()
+        cur.close()
+
+        session["user"] = name
+        session["email"] = email
+        flash("Registration Successful!")
+        return redirect(url_for("login"))
+
+    return render_template("register.html")
 
 @app.route("/login", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         session.permanent = True
-        user = request.form["name"]
         email = request.form["email"]
-        
+        password = request.form["password"]
+
+        cur = mysql.connection.cursor()
+        cur.execute("SELECT name, password_hash FROM users WHERE email = %s", [email])
+        user = cur.fetchone()
+        cur.close()
+
+        if user is None:
+            flash("No account found with that email. Please register.")
+            return redirect(url_for("register"))
+
+        name, password_hash = user
+
+        # Check if the password is correct
+        if hashlib.sha256(password.encode()).hexdigest() != password_hash:
+            flash("Incorrect password. Please try again.")
+            return redirect(url_for("login"))
+
         # Check if the user is an administrator
-        if user == "admin" and email == "admin249@iitgn.ac.in":
-            session["user"] = user
+        if email == "admin249@iitgn.ac.in":
+            session["user"] = name
             session["email"] = email
             flash("Login Successful, Admin!")
             return redirect(url_for("use"))  # Redirect to admin page
-        
-        session["user"] = user
+
+        session["user"] = name
+        session["email"] = email
         flash("Login Successful!")
         return redirect(url_for("user"))
+
     else:
         if "user" in session:
             flash("Already Logged In!")
             return redirect(url_for("user"))
-        
+
         return render_template("login.html")
 
 
@@ -69,7 +109,7 @@ def insert():
 
     # Fetch table names
     cur.execute("SHOW TABLES")
-    tables = [table[0] for table in cur.fetchall()]
+    tables = [table[0] for table in cur.fetchall() if table[0] != 'users']
 
     if request.method == 'POST':
         table_name = request.form['table_name']
@@ -88,11 +128,14 @@ def insert():
             query = f"INSERT INTO {table_name} ({attributes_str}) VALUES ({values_str})"
             cur.execute(query)
             mysql.connection.commit()
+            cur.close()
 
-        cur.close()
+            return jsonify({"success": True})
+        else:
+            cur.close()
+            return jsonify({"success": False, "message": "No attributes provided for insertion"})
 
-        return render_template('insert.html', message="Data inserted successfully!", tables=tables)
-
+    cur.close()
     return render_template('insert.html', tables=tables)
 
 
@@ -111,7 +154,7 @@ def delete():
 
     # Fetch table names
     cur.execute("SHOW TABLES")
-    tables = [table[0] for table in cur.fetchall()]
+    tables = [table[0] for table in cur.fetchall()  if table[0] != 'users']
 
     if request.method == 'POST':
         table_name = request.form['table_name']
@@ -124,11 +167,13 @@ def delete():
             query = f"DELETE FROM {table_name} WHERE {condition_str}"
             cur.execute(query)
             mysql.connection.commit()
+            cur.close()
 
-        cur.close()
-
-        return render_template('delete.html', message="Data deleted successfully!", tables=tables)
-
+            return jsonify({"success": True})
+        else:
+            cur.close()
+            return jsonify({"success": False, "message": "No attributes provided for deletion."})
+    cur.close()
     return render_template('delete.html', tables=tables)
 
 
@@ -148,7 +193,7 @@ def update():
 
     # Fetch table names
     cur.execute("SHOW TABLES")
-    tables = [table[0] for table in cur.fetchall()]
+    tables = [table[0] for table in cur.fetchall()  if table[0] != 'users']
 
     if request.method == 'POST':
         table_name = request.form['table_name']
@@ -163,11 +208,13 @@ def update():
             query = f"UPDATE {table_name} SET {update_attribute} = '{update_value}' WHERE {condition_str}"
             cur.execute(query)
             mysql.connection.commit()
+            cur.close()
 
-        cur.close()
-
-        return render_template('update.html', message="Data updated successfully!", tables=tables)
-
+            return jsonify({"success": True})
+        else:
+            cur.close()
+            return jsonify({"success": False, "message": "No attributes provided to update."})
+    cur.close()
     return render_template('update.html', tables=tables)
 
 
@@ -186,16 +233,20 @@ def rename():
     
     cur = mysql.connection.cursor()
     cur.execute("SHOW TABLES")
-    tables = [table[0] for table in cur.fetchall()]
+    tables = [table[0] for table in cur.fetchall()  if table[0] != 'users']
 
     if request.method == 'POST':
         old_table_name = request.form['old_table_name']
         new_table_name = request.form['new_table_name']
-
-        query = f"RENAME TABLE {old_table_name} TO {new_table_name}"
-        cur.execute(query)
-        mysql.connection.commit()
-        return redirect(url_for('use'))
+        try:
+            query = f"RENAME TABLE {old_table_name} TO {new_table_name}"
+            cur.execute(query)
+            mysql.connection.commit()
+            cur.close()
+            return jsonify({"success": True})
+        except Exception as e:
+            cur.close()
+            return jsonify({"success": False, "message": str(e)})
 
     cur.close()
     return render_template('rename.html', tables=tables)
@@ -216,30 +267,28 @@ def get_attributes():
 
     return jsonify({'attributes': attributes})
 
-
+        
 @app.route('/user', methods=['GET', 'POST'])
 def user():
     if "user" in session:
         user = session["user"]
         if request.method == 'POST':
-            search_term = request.form['search_term']
-            search_by = request.form['search_by']  # This should be either 'Name/Email' or 'Discipline/Section'
-
             cur = mysql.connection.cursor()
-
-            query= '''SELECT * FROM ((SELECT CONCAT_WS(' ', ts.FirstName, ts.MiddleName, ts.LastName) AS Name, jd.Designation AS Designation, ts.Email AS Email,jd.Discipline_name AS Discipline_Section, p.Work AS Work,CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', jd.Building, jd.Room_number) AS Office FROM Teaching_staff ts JOIN Specialization s ON ts.Faculty_ID = s.Faculty_ID JOIN Job_desc jd ON s.Discipline_name = jd.Discipline_name JOIN Contact c ON ts.Faculty_ID = c.Faculty_ID JOIN Phone p ON c.Work = p.Work AND s.Designation = jd.Designation AND s.Room_number = jd.Room_number AND s.Building = jd.Building) UNION All (SELECT CONCAT_WS(' ', nts.F_name, nts.M_name, nts.L_name) AS Name, jd.Designation AS Designation, nts.EmailID AS Email, jd.Discipline_name AS Discipline_Section, p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', jd.Building, jd.Room_number) AS Office  FROM NTeaching_staff nts  JOIN Work_info wi ON nts.Staff_ID = wi.Staff_ID JOIN Job_desc jd ON wi.Discipline_name = jd.Discipline_name JOIN Contact_enquiry ce ON nts.Staff_ID = ce.Staff_ID JOIN Phone p ON ce.Work = p.Work AND wi.Designation = jd.Designation AND wi.Room_number = jd.Room_number AND wi.Building = jd.Building) UNION All (SELECT CONCAT_WS(' ', st.First_name, st.Middle_name, st.Last_name) AS Name, st.Program AS Designation,st.Email_id AS Email,st.Discipline AS Discipline_Section,p.Work AS Work,CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/',' ') AS Office  FROM Students st  JOIN Contact_number cn ON st.Roll_number = cn.Roll_number  JOIN Phone p ON cn.Work = p.Work) UNION All (SELECT CONCAT_WS(' ', f.Facility_name) AS Name,' ' AS Designation, f.Email_addr AS Email,' ' AS Discipline_Section, p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', f.BuildingName, f.RoomNumber) AS Office  FROM Contact_info ci  JOIN Facility f ON ci.Facility_name = f.Facility_name   JOIN Phone p ON ci.Work = p.Work) UNION All (SELECT b.Block_name AS Name, ' ' AS Designation,' ' AS Email,' ' AS Discipline_Section,p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, ' '  AS Office  FROM To_Contact tc  JOIN Block b ON tc.Block_name = b.Block_name  JOIN Phone p ON tc.Work = p.Work)) AS derived_table'''
-            
+            query = '''SELECT * FROM ((SELECT CONCAT_WS(' ', ts.FirstName, ts.MiddleName, ts.LastName) AS Name, jd.Designation AS Designation, ts.Email AS Email,jd.Discipline_name AS Discipline_Section, p.Work AS Work,CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', jd.Building, jd.Room_number) AS Office FROM Teaching_staff ts JOIN Specialization s ON ts.Faculty_ID = s.Faculty_ID JOIN Job_desc jd ON s.Discipline_name = jd.Discipline_name JOIN Contact c ON ts.Faculty_ID = c.Faculty_ID JOIN Phone p ON c.Work = p.Work AND s.Designation = jd.Designation AND s.Room_number = jd.Room_number AND s.Building = jd.Building) UNION All (SELECT CONCAT_WS(' ', nts.F_name, nts.M_name, nts.L_name) AS Name, jd.Designation AS Designation, nts.EmailID AS Email, jd.Discipline_name AS Discipline_Section, p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', jd.Building, jd.Room_number) AS Office  FROM NTeaching_staff nts  JOIN Work_info wi ON nts.Staff_ID = wi.Staff_ID JOIN Job_desc jd ON wi.Discipline_name = jd.Discipline_name JOIN Contact_enquiry ce ON nts.Staff_ID = ce.Staff_ID JOIN Phone p ON ce.Work = p.Work AND wi.Designation = jd.Designation AND wi.Room_number = jd.Room_number AND wi.Building = jd.Building) UNION All (SELECT CONCAT_WS(' ', st.First_name, st.Middle_name, st.Last_name) AS Name, st.Program AS Designation,st.Email_id AS Email,st.Discipline AS Discipline_Section,p.Work AS Work,CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/',' ') AS Office  FROM Students st  JOIN Contact_number cn ON st.Roll_number = cn.Roll_number  JOIN Phone p ON cn.Work = p.Work) UNION All (SELECT CONCAT_WS(' ', f.Facility_name) AS Name,' ' AS Designation, f.Email_addr AS Email,' ' AS Discipline_Section, p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, CONCAT_WS('/', f.BuildingName, f.RoomNumber) AS Office  FROM Contact_info ci  JOIN Facility f ON ci.Facility_name = f.Facility_name   JOIN Phone p ON ci.Work = p.Work) UNION All (SELECT b.Block_name AS Name, ' ' AS Designation,' ' AS Email,' ' AS Discipline_Section,p.Work AS Work, CONCAT_WS('/', IFNULL(p.Home, ''), IFNULL(p.Emergency, '')) AS Home_Emerg, ' '  AS Office  FROM To_Contact tc  JOIN Block b ON tc.Block_name = b.Block_name  JOIN Phone p ON tc.Work = p.Work)) AS derived_table'''
             data = []
-
-            if search_by == 'Name/Email':
+            # Search by Name/Email
+            if 'search_term' in request.form:
+                search_term = request.form['search_term']
                 cur.execute(query + " WHERE Name LIKE %s OR Email LIKE %s ORDER BY Name", (f"%{search_term}%", f"%{search_term}%"))
-            else:  # search_by == 'Discipline/Section'
-                cur.execute(query + " WHERE Discipline_Section LIKE %s ORDER BY Name", (f"%{search_term}%",))
+                data.extend(cur.fetchall())
 
-            data.extend(cur.fetchall())
+            # Search by Discipline/Section with Dropdown
+            elif 'discipline_section' in request.form:
+                discipline_section = request.form['discipline_section']
+                cur.execute(query + " WHERE Discipline_Section LIKE %s ORDER BY Name", (f"%{discipline_section}%",))
+                data.extend(cur.fetchall())
 
             cur.close()
-
             return render_template('index1.html', data=data)
 
         return render_template('index1.html')
@@ -262,7 +311,7 @@ def use():
     
     cur = mysql.connection.cursor()
     cur.execute("SHOW TABLES")
-    tables = [table[0] for table in cur.fetchall()]
+    tables = [table[0] for table in cur.fetchall()  if table[0] != 'users']
     cur.close()
     return render_template('use.html', tables=tables)
 
@@ -298,6 +347,19 @@ def usage(table_name):
     cur.close()
     return render_template('usage.html', table_name=table_name, attributes=attributes, records=records)
 
+@app.route('/relations', methods=['GET','POST'])
+def relations():
+    # Check if the user is logged in
+    if "user" not in session:
+        flash("You are not logged in!")
+        return redirect(url_for("login"))
+    
+    # Check if the user is an administrator
+    if session["user"] != "admin" or session["email"] != "admin249@iitgn.ac.in":
+        flash("You are not authorized to perform this action!")
+        return redirect(url_for("user"))
+    
+    return render_template('relations.html')
 
 if __name__ == "__main__":
     app.run(debug = True)
