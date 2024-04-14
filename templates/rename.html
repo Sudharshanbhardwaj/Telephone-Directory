@@ -19,7 +19,7 @@
         }
         form {
             color: white ;
-            width: 500px;
+            width: 610px;
             font-family: Arial;
             background-color: rgba(0, 0, 0, 0.7); 
             padding: 40px;
@@ -82,6 +82,7 @@
 <header>
     <div class="navbar">
         <a href="/use">Use</a>
+        <a href="/relations">Relations</a>
         <a href="/user">User</a>
         <a href="/insert">Insert</a>
         <a href="/update">Update</a>
@@ -106,8 +107,32 @@
         <input type="text" name="new_table_name" id="new_table_name" placeholder="New table name" style="margin-top: 10px;">
         <input type="submit" value="Rename">
     </form>
-    {% if message %}
-    <p>{{ message }}</p>
-    {% endif %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelector('form').onsubmit = function (event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+                fetch('/rename', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Table name renamed successfully!");
+                        window.location.reload(); // Reload the page after successful deletion
+                    } else {
+                        alert("Failed to rename Table name: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("An error occurred while renaming data.");
+                });
+            };
+        });
+        </script>
 </body>
+
 </html>

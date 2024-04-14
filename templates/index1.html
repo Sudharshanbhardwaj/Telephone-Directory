@@ -16,24 +16,37 @@
             flex-direction: column;
             align-items: center;
         }
+        .form-container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+            
+        }
         form {
             color: white ;
-            width: 450px;
+            width: 400px;
             font-family: Arial;
             background-color: rgba(0, 0, 0, 0.7); 
-            padding: 40px;
+            padding: 10px;
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
+            display: flex;
+            align-items: center;
+        }
+        select {
+            width: 250px;
+            height: 40px;
         }
         input[type="submit"] {
-            width: 100%;
+            width: 30%; /* Adjust according to your layout */
             padding: 10px;
             font-size: 16px;
             border: none;
             border-radius: 5px;
             background-color: transparent;
             border-radius: 8px;
-            margin-top: 20px;
+            
             box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
             color: white;
             cursor: pointer;
@@ -43,9 +56,12 @@
             color: black;
         }
         table {
-            width: 80%;
+            width: 100%; /* Adjust width as needed */
+            margin: 0 auto; /* Center the table horizontally */
             border-collapse: collapse;
+            align-items: center;
         }
+
         table, th, td {
             border: 1px solid black;
         }
@@ -58,30 +74,28 @@
             color: white;
         }
         tr:nth-child(even) {background-color: #f2f2f2;}
-        tr:nth-child(odd) {background-color: #f2f2f2; }
-        input[type="text"], button {
+        tr:nth-child(odd) {background-color: #eeebeb; }
+        input[type="text"], select {
             border-radius: 5px;
             padding: 10px 20px;
             border: 1px solid #ccc;
-            width: 100%;
+            width: 60%; /* Adjust according to your layout */
             box-sizing: border-box;
             margin-bottom: 10px;
-        }
-        p {
-            color: white;
         }
         .navbar {
             background-color: rgba(0, 0, 0, 0.7);
             overflow: hidden;
-            width: fit-content;
+            width: 100%; /* Adjust according to your layout */
             border-radius: 8px;
-            margin: 0;
+            margin: 0 auto; /* Center the navbar */
             box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
             margin-bottom: 20px;
+            display: flex; /* Make the navbar items line up in a row */
+            justify-content: space-around; /* Distribute the items evenly */
         }
 
         .navbar a {
-            float: left;
             display: block;
             color: white;
             text-align: center;
@@ -98,6 +112,7 @@
 <header>
     <div class="navbar">
         <a href="/use">Use</a>
+        <a href="/relations">Relations</a>
         <a href="/user">User</a>
         <a href="/insert">Insert</a>
         <a href="/update">Update</a>
@@ -110,20 +125,58 @@
     {% with messages = get_flashed_messages() %}
         {% if messages %}
             {% for msg in messages %}
-                <p>{{msg}}</p>
+                <p style="color: red;">{{msg}}</p>
             {% endfor %}
         {% endif %}
     {% endwith %}
-    <form method="POST">
-        <input type="text" name="search_term" placeholder="Enter Search Term">
-        <div class="NE" style="border-radius: 5px;">
-        <select name="search_by">
-            <option value="Name/Email">Name/Email</option>
-            <option value="Discipline/Section">Discipline/Section</option>
-        </select>
-        </div>
-        <input type="submit" value="Search">
-    </form>
+    <div class="form-container">
+        <form method="POST">
+            <!-- Search by Name/Email -->
+            <input type="text" name="search_term" placeholder="Enter Name/Email">
+            <input type="submit" value="Search">
+        </form>
+
+        <form method="POST">
+            <!-- Search by Discipline/Section with Dropdown -->
+            <select name="discipline_section" onchange="this.form.submit()">
+                <option value="">--Select Discipline/Section--</option>
+                <option value="Academic">Academic</option>
+                <option value="Administration">Administration</option>
+                <option value="Alumni Relations">Alumni Relations</option>
+                <option value="Campus Development">Campus Development</option>
+                <option value="Director Office">Director Office</option>
+                <option value="Estate and Works">Estate and Works</option>
+                <option value="External Relations">External Relations</option>
+                <option value="Faculty Affairs">Faculty Affairs</option>
+                <option value="Finance and Accounts">Finance and Accounts</option>
+                <option value="Health and Fitness">Health and Fitness</option>
+                <option value="Hospitality">Hospitality</option>
+                <option value="Research Park">Research Park</option>
+                <option value="ISTF">ISTF</option>
+                <option value="Library">Library</option>
+                <option value="Materials Management">Materials Management</option>
+                <option value="Registrar Office">Registrar Office</option>
+                <option value="Research & Development">Research & Development</option>
+                <option value="Student Affairs">Student Affairs</option>
+                <option value="Biological Engineering">Biological Engineering</option>
+                <option value="Civil Engineering">Civil Engineering</option>
+                <option value="Chemical Engineering">Chemical Engineering</option>
+                <option value="Computer Science and Engineering">Computer Science and Engineering</option>
+                <option value="Electrical Engineering">Electrical Engineering</option>
+                <option value="Mechanical Engineering">Mechanical Engineering</option>
+                <option value="Materials Engineering">Materials Engineering</option>
+                <option value="Chemistry">Chemistry</option>
+                <option value="Physics">Physics</option>
+                <option value="Mathematics">Mathematics</option>
+                <option value="Cognitive Sciences">Cognitive Sciences</option>
+                <option value="Earth Sciences">Earth Sciences</option>
+                <option value="Humanities & Social Sciences">Humanities & Social Sciences</option>
+                <option value="Design">Design</option>
+                <option value="Creative Learning">Creative Learning</option>
+
+            </select>
+        </form>
+    </div>
     {% if data %}
     <table>
         <tr>

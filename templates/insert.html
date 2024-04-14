@@ -15,15 +15,13 @@
         }
         .insert-container {
             color: black;
-            width: 500px;
+            width: 600px;
             padding: 40px;
             background-color: rgba(0, 0, 0, 0.7);
             border-radius: 8px;
             box-shadow: 0 0 10px rgba(236, 232, 232, 0.786);
         }
-        .message {
-            color: white;
-        }
+
         select,
         input[type="submit"],
         input[type="text"] {
@@ -79,6 +77,7 @@
     <header>
         <div class="navbar">
             <a href="/use">Use</a>
+            <a href="/relations">Relations</a>
             <a href="/user">User</a>
             <a href="/insert">Insert</a>
             <a href="/update">Update</a>
@@ -100,11 +99,7 @@
             <div id="attributes"></div>
             <input type="submit" value="Insert">
         </form>
-        <div class= "message">
-            {% if message %}
-            <p>{{ message }}</p>
-            {% endif %}
-        </div>
+
     </div>
     <script>
         function showAttributes(table_name) {
@@ -124,6 +119,30 @@
                     }
                 });
         }
+        document.addEventListener('DOMContentLoaded', function () {
+            document.querySelector('form').onsubmit = function (event) {
+                event.preventDefault();
+                const form = event.target;
+                const formData = new FormData(form);
+                fetch('/insert', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert("Data inserted successfully!");
+                        window.location.reload(); // Reload the page after successful deletion
+                    } else {
+                        alert("Failed to insert data: " + data.message);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert("An error occurred while inserting data.");
+                });
+            };
+        });
     </script>
 </body>
 </html>

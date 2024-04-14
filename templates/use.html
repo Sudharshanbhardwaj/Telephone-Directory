@@ -18,7 +18,7 @@
         }
         .button-container {
             color: white ;
-            width: 500px;
+            width: 600px;
             font-family: Arial;
             background-color: rgba(0, 0, 0, 0.7); 
             padding: 40px;
@@ -68,6 +68,7 @@
     <header>
         <div class="navbar">
             <a href="/use">Use</a>
+            <a href="/relations">Relations</a>
             <a href="/user">User</a>
             <a href="/insert">Insert</a>
             <a href="/update">Update</a>
@@ -75,6 +76,13 @@
             <a href="/rename">Rename</a>
             <a href="/logout">Logout</a>
         </div>
+    {% with messages = get_flashed_messages() %}
+        {% if messages %}
+            {% for msg in messages %}
+              <p style="color: red;">{{msg}}</p>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
     <div class="button-container">
         {% for table in tables %}
             <button onclick="window.location.href = '/usage/{{ table }}'">{{ table }}</button>
