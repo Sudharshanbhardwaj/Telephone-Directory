@@ -16,4 +16,8 @@ Follow these steps to set up the Octacore1 app:
 4. **Accessing the App:**  
    - Upon successful completion of the above steps, you should be able to access the home page of the app.
 
-
+5. **Different Users:**  
+   - The users can be categorized into two parts. (Administrator, PseudoAdmin) and normal users.
+   - Only the first type users can modify the values or records in the database.
+   - The normal users are only permited to view the data.
+   - Refer Assignment 4 pdf for more information.
